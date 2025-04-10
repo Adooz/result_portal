@@ -27,7 +27,6 @@ def index():
             flash("Student ID not found.")
             return redirect('/')
 
-        # Validate access code existence and check if it is assigned to another student
         if access_code:
             if access_code not in access_codes:
                 flash("Invalid access code.")
@@ -35,36 +34,35 @@ def index():
 
             record = access_codes[access_code]
             assigned_to = record.get('assigned_to')
+            usage_count = record.get('usage_count', 0)
 
-            # Access code assigned to another student
+            # Check if the access code is already assigned to another student
             if assigned_to and assigned_to != student_id:
                 flash("Access code already assigned to another student.")
                 return redirect('/')
 
-        # Serve the result file
+            # Check if usage limit exceeded
+            if usage_count >= 5:
+                flash("Access code usage limit exceeded.")
+                return redirect('/')
+
+        # Check if result file exists
         student_class = student_info['class']
         result_path = os.path.join(app.config['RESULTS_FOLDER'], session, term, student_class)
         result_file = f"{student_id}.pdf"
         full_path = os.path.join(result_path, result_file)
 
-        print("Looking for file at:", full_path)  # Debug print
-
         if not os.path.exists(full_path):
             flash("Result not found.")
-            return redirect('/')  # Early exit if the result is not found
+            return redirect('/')
 
-        # Handle case with no access code (assign access code if result is found)
-        if not access_code:
-            access_codes[student_id] = {"assigned_to": student_id, "usage_count": 0}
-            save_json(app.config['ACCESS_CODE_DB'], access_codes)
-            flash(f"Access code has been assigned to student {student_id}.")
-
-        # At this point, the file exists — now update usage count
+        # Assign the access code if not already assigned
         if access_code:
-            access_codes[access_code]['usage_count'] += 1
+            access_codes[access_code]['assigned_to'] = student_id
+            access_codes[access_code]['usage_count'] = access_codes[access_code].get('usage_count', 0) + 1
             save_json(app.config['ACCESS_CODE_DB'], access_codes)
 
-        # Force PDF to be displayed inline
+        # Display the PDF inline
         response = send_from_directory(result_path, result_file, as_attachment=False, mimetype='application/pdf')
         response.headers['Content-Disposition'] = f'inline; filename={result_file}'
         return response
