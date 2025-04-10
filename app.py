@@ -36,16 +36,10 @@ def index():
             record = access_codes[access_code]
             assigned_to = record.get('assigned_to')
 
-            # If access code is already assigned to a student
-            if assigned_to:
-                if assigned_to != student_id:
-                    flash("Access code already assigned to another student.")
-                    return redirect('/')
-            else:
-                # Assign the access code to the current student
-                access_codes[access_code] = {"assigned_to": student_id, "usage_count": 0}
-                save_json(app.config['ACCESS_CODE_DB'], access_codes)
-                flash(f"Access code has been assigned to student {student_id}.")
+            # Access code assigned to another student
+            if assigned_to and assigned_to != student_id:
+                flash("Access code already assigned to another student.")
+                return redirect('/')
 
         # Serve the result file
         student_class = student_info['class']
@@ -59,19 +53,21 @@ def index():
             flash("Result not found.")
             return redirect('/')  # Early exit if the result is not found
 
-        # If no access code is provided, assign it only after the file is found
+        # Handle case with no access code (assign access code if result is found)
         if not access_code:
             access_codes[student_id] = {"assigned_to": student_id, "usage_count": 0}
             save_json(app.config['ACCESS_CODE_DB'], access_codes)
             flash(f"Access code has been assigned to student {student_id}.")
 
-        # At this point, the file exists — now update usage count if an access code is provided
+        # At this point, the file exists — now update usage count
         if access_code:
             access_codes[access_code]['usage_count'] += 1
             save_json(app.config['ACCESS_CODE_DB'], access_codes)
 
-        # Return the result as a PDF
-        return send_from_directory(result_path, result_file, as_attachment=False, mimetype='application/pdf')
+        # Force PDF to be displayed inline
+        response = send_from_directory(result_path, result_file, as_attachment=False, mimetype='application/pdf')
+        response.headers['Content-Disposition'] = f'inline; filename={result_file}'
+        return response
 
     return render_template('index.html', sessions=sessions, terms=terms)
 
