@@ -92,6 +92,33 @@ def show_tables():
         return {'tables': [t[0] for t in tables]}
     except Exception as e:
         return {'error': str(e)}, 500
+@app.route('/debug/schema')
+def show_schema():
+    import sqlite3
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # Get all table names
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+
+        schema = {}
+
+        for (table_name,) in tables:
+            cursor.execute(f"PRAGMA table_info({table_name});")
+            columns = cursor.fetchall()  # Each row: (cid, name, type, notnull, dflt_value, pk)
+            schema[table_name] = [
+                {'name': col[1], 'type': col[2], 'notnull': col[3], 'default': col[4], 'pk': col[5]}
+                for col in columns
+            ]
+
+        conn.close()
+        return schema
+
+    except Exception as e:
+        return {'error': str(e)}, 500
 
 
 if __name__ == '__main__':
