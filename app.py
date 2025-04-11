@@ -79,6 +79,19 @@ def index():
         return response
 
     return render_template('index.html', sessions=sessions, terms=terms)
+@app.route('/debug/tables')
+def show_tables():
+    import sqlite3
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = cursor.fetchall()
+        conn.close()
+        return {'tables': [t[0] for t in tables]}
+    except Exception as e:
+        return {'error': str(e)}, 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
