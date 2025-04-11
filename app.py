@@ -9,6 +9,7 @@ app.config.from_object(Config)
 app.secret_key = 'SECRET_KEY'  # Required for flashing messages
 init_app(app)
 
+DB_PATH = os.path.join(os.getcwd(), 'result_portal.db')  # SQLite database location
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
