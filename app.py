@@ -92,30 +92,26 @@ def show_tables():
         return {'tables': [t[0] for t in tables]}
     except Exception as e:
         return {'error': str(e)}, 500
-@app.route('/debug/schema')
-def show_schema():
+@app.route('/debug/table/<table_name>')
+def view_table_data(table_name):
     import sqlite3
 
     try:
         conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # Get all table names
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = cursor.fetchall()
+        # Check if table exists
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?;", (table_name,))
+        if not cursor.fetchone():
+            return {'error': f"Table '{table_name}' does not exist"}, 404
 
-        schema = {}
-
-        for (table_name,) in tables:
-            cursor.execute(f"PRAGMA table_info({table_name});")
-            columns = cursor.fetchall()  # Each row: (cid, name, type, notnull, dflt_value, pk)
-            schema[table_name] = [
-                {'name': col[1], 'type': col[2], 'notnull': col[3], 'default': col[4], 'pk': col[5]}
-                for col in columns
-            ]
+        cursor.execute(f"SELECT * FROM {table_name} LIMIT 100;")
+        rows = cursor.fetchall()
+        data = [dict(row) for row in rows]
 
         conn.close()
-        return schema
+        return {'table': table_name, 'rows': data}
 
     except Exception as e:
         return {'error': str(e)}, 500
