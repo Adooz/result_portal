@@ -97,6 +97,9 @@ def view_table_data(table_name):
     import sqlite3
 
     try:
+        # Get 'limit' from query string (default to 100)
+        limit = request.args.get('limit', default=100, type=int)
+
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
@@ -106,12 +109,13 @@ def view_table_data(table_name):
         if not cursor.fetchone():
             return {'error': f"Table '{table_name}' does not exist"}, 404
 
-        cursor.execute(f"SELECT * FROM {table_name} LIMIT 100;")
+        # Use limit in query
+        cursor.execute(f"SELECT * FROM {table_name} LIMIT ?", (limit,))
         rows = cursor.fetchall()
         data = [dict(row) for row in rows]
 
         conn.close()
-        return {'table': table_name, 'rows': data}
+        return {'table': table_name, 'limit': limit, 'rows': data}
 
     except Exception as e:
         return {'error': str(e)}, 500
