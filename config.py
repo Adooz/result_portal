@@ -13,10 +13,8 @@ class Config:
     # Database URI (SQLite in this case)
     DATABASE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'result_portal.db')
     #DB_PATH = DATABASE
-    #DB_PATH = os.path.join(os.getcwd(), 'result_portal.db')  # SQLite database location
-    #RESULTS_FOLDER = os.path.join(os.getcwd(), 'results')  # Path to results folder
-    DB_PATH = os.path.join('/mnt/data', 'result_portal.db')  # SQLite database file in /mnt/data
-    RESULTS_FOLDER = os.path.join('/mnt/data', 'results')
+    DB_PATH = os.path.join(os.getcwd(), 'result_portal.db')  # SQLite database location
+    RESULTS_FOLDER = os.path.join(os.getcwd(), 'results')  # Path to results folder
     ACCESS_CODE_DB = 'access_codes'
     STUDENT_DB = 'students'
 
