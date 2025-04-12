@@ -18,6 +18,7 @@ body {
     width: 100%;
     max-width: 400px; /* Max width for larger screens */
     margin: 0 20px;  /* Margin for small screens */
+    box-sizing: border-box; /* Prevents padding from affecting the width */
 }
 
 h1 {
@@ -43,6 +44,7 @@ select {
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 16px; /* Ensures text is readable */
+    box-sizing: border-box; /* Prevents padding from affecting width */
 }
 
 button {
@@ -54,6 +56,7 @@ button {
     width: 100%;
     cursor: pointer;
     font-size: 16px;
+    box-sizing: border-box; /* Prevents padding from affecting width */
 }
 
 button:hover {
@@ -89,6 +92,7 @@ button:hover {
     select,
     button {
         font-size: 14px;  /* Smaller font on mobile for better spacing */
+        padding: 10px;  /* Adjust padding */
     }
 }
 
@@ -114,6 +118,7 @@ button:hover {
         padding: 8px;
     }
 }
+
 @keyframes fadeSlideUp {
     0% {
         opacity: 0;
@@ -155,6 +160,7 @@ button:hover {
     margin-bottom: 20px;
     letter-spacing: 0.5px;
 }
+
 .logo {
     display: block;
     margin: 0 auto 20px auto;
@@ -162,6 +168,7 @@ button:hover {
     height: auto;
     border-radius: 8px; /* optional: adds a soft rounded look */
 }
+
 .form-footer {
     text-align: center;
     margin-top: 20px;
@@ -180,4 +187,3 @@ button:hover {
 .form-footer a:hover {
     color: #1488ab;
 }
-
