@@ -53,7 +53,7 @@ def populate_students(df):
 if __name__ == '__main__':
     import sys
     if len(sys.argv) != 2:
-        print("Usage: python scripts/reset_students.py <path_to_file.csv/xlsx>")
+        print("Usage: python reset_students.py <path_to_file.csv/xlsx>")
         exit(1)
 
     file_path = sys.argv[1]

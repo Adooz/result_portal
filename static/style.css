@@ -46,7 +46,7 @@ select {
 }
 
 button {
-    background-color: #4CAF50;
+    background-color: #0f5dab;
     color: white;
     padding: 12px;
     border: none;
@@ -57,7 +57,7 @@ button {
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #3490eb;
 }
 
 .flash-messages {
@@ -113,4 +113,45 @@ button:hover {
         font-size: 12px;  /* Smaller font for flash messages */
         padding: 8px;
     }
+}
+@keyframes fadeSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.school-name,
+.portal-title {
+    opacity: 0; /* initial state for animation */
+    animation: fadeSlideUp 1s ease-out forwards;
+}
+
+/* Stagger the animation slightly */
+.portal-title {
+    animation-delay: 0.3s;
+}
+.school-name {
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f5dab;
+    text-align: center;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.portal-title {
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: #37474f;
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
 }
