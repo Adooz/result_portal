@@ -3,12 +3,13 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
     margin: 0;
-    padding: 20px;
+    padding: 0;
     display: flex;
     justify-content: center;
-    min-height: 100vh; /* allows content to grow */
-    box-sizing: border-box;
+    align-items: center;
+    height: 100vh;
 }
+
 
 
 .container {
@@ -20,8 +21,6 @@ body {
     max-width: 400px; /* Max width for larger screens */
     margin: 0 20px;  /* Margin for small screens */
     box-sizing: border-box; /* Prevents padding from affecting the width */
-    overflow: auto; /* allows scrolling if content is too tall */
-    max-height: 100%; /* prevent it from growing out of bounds */
 }
 
 h1 {
@@ -96,21 +95,6 @@ button:hover {
     button {
         font-size: 14px;  /* Smaller font on mobile for better spacing */
         padding: 10px;  /* Adjust padding */
-    }
-}
-
-@media (max-width: 480px) {
-    .logo {
-        width: 40px;
-        margin-bottom: 10px;
-    }
-
-    .school-name {
-        font-size: 20px;
-    }
-
-    .portal-title {
-        font-size: 16px;
     }
 }
 
