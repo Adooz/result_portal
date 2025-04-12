@@ -73,6 +73,10 @@ def index():
         session = request.form['session']
         term = request.form['term']
 
+        if term == "#":
+            flash("Please select a correct term.", "error")
+            return redirect('/')
+
         conn = get_db_connection()
 
         # Validate student ID
