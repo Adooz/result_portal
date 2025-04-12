@@ -56,7 +56,7 @@ def add_timestamp_to_pdf(original_pdf_path):
         pdf_writer.add_page(page)
 
     # Save the modified PDF to a temporary file
-    modified_pdf_path = original_pdf_path.replace(".pdf", "_modified.pdf")
+    modified_pdf_path = original_pdf_path.replace(".pdf", "_Result.pdf")
     with open(modified_pdf_path, "wb") as output_pdf:
         pdf_writer.write(output_pdf)
 
@@ -137,6 +137,7 @@ def index():
         modified_pdf_path = add_timestamp_to_pdf(full_path)
 
         # Display the modified PDF inline
+        flash("Result downloaded!.")
         response = send_from_directory(result_path, os.path.basename(modified_pdf_path), as_attachment=False, mimetype='application/pdf')
         response.headers['Content-Disposition'] = f'inline; filename={os.path.basename(modified_pdf_path)}'
         return response
