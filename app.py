@@ -54,8 +54,9 @@ def index():
 
         # Check if result file exists
         student_class = student['class']
+        student_name = student['name']
         result_path = os.path.join(app.config['RESULTS_FOLDER'], session, term, student_class)
-        result_file = f"{student_id}.pdf"
+        result_file = f"{student_name}.pdf"
         full_path = os.path.join(result_path, result_file)
 
         if not os.path.exists(full_path):
@@ -69,7 +70,7 @@ def index():
                 UPDATE access_codes
                 SET assigned_to = ?, usage_count = usage_count + 1
                 WHERE code = ?
-            """, (student_id, access_code))
+            """, (student_name, access_code))
             conn.commit()
 
         conn.close()
