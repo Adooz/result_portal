@@ -10,6 +10,7 @@ app.secret_key = 'SECRET_KEY'  # Required for flashing messages
 init_app(app)
 
 DB_PATH = os.path.join(os.getcwd(), 'result_portal.db')  # SQLite database location
+MASTER_ACCESS_CODE = "Adoozisback1@"  # Master PIN with unlimited usage
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -31,8 +32,11 @@ def index():
             conn.close()
             return redirect('/')
 
-        # Validate access code if provided
-        if access_code:
+        # Check if master code is used
+        is_master_code = (access_code == MASTER_ACCESS_CODE)
+
+        # Validate access code from DB (unless it's master code)
+        if access_code and not is_master_code:
             code = conn.execute("SELECT * FROM access_codes WHERE code = ?", (access_code,)).fetchone()
             if not code:
                 flash("Invalid access code.")
@@ -64,13 +68,13 @@ def index():
             conn.close()
             return redirect('/')
 
-        # If valid access code, update assignment and usage count
-        if access_code:
+        # Update usage only for normal access codes
+        if access_code and not is_master_code:
             conn.execute("""
                 UPDATE access_codes
                 SET assigned_to = ?, usage_count = usage_count + 1
                 WHERE code = ?
-            """, (student_name, access_code))
+            """, (student_id, access_code))
             conn.commit()
 
         conn.close()
@@ -81,9 +85,9 @@ def index():
         return response
 
     return render_template('index.html', sessions=sessions, terms=terms)
+
 @app.route('/debug/tables')
 def show_tables():
-    import sqlite3
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
@@ -93,24 +97,19 @@ def show_tables():
         return {'tables': [t[0] for t in tables]}
     except Exception as e:
         return {'error': str(e)}, 500
+
 @app.route('/debug/table/<table_name>')
 def view_table_data(table_name):
-    import sqlite3
-
     try:
-        # Get 'limit' from query string (default to 100)
         limit = request.args.get('limit', default=100, type=int)
-
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # Check if table exists
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?;", (table_name,))
         if not cursor.fetchone():
             return {'error': f"Table '{table_name}' does not exist"}, 404
 
-        # Use limit in query
         cursor.execute(f"SELECT * FROM {table_name} LIMIT ?", (limit,))
         rows = cursor.fetchall()
         data = [dict(row) for row in rows]
@@ -120,7 +119,6 @@ def view_table_data(table_name):
 
     except Exception as e:
         return {'error': str(e)}, 500
-
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -155,3 +155,11 @@ button:hover {
     margin-bottom: 20px;
     letter-spacing: 0.5px;
 }
+.logo {
+    display: block;
+    margin: 0 auto 20px auto;
+    width: 60px;  /* reduced from 100px */
+    height: auto;
+    border-radius: 8px; /* optional: adds a soft rounded look */
+}
+
