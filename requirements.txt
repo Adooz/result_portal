@@ -26,3 +26,5 @@ Werkzeug==2.3.7
 WTForms==3.0.1
 zipp==3.16.2
 gunicorn==21.2.0
+PyPDF2==3.0.1
+reportlab

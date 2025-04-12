@@ -3,6 +3,11 @@ import os
 import sqlite3
 from config import Config
 from utils.db import get_db_connection, init_app, init_db
+from PyPDF2 import PdfReader, PdfWriter
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from datetime import datetime
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -11,6 +16,51 @@ init_app(app)
 
 DB_PATH = os.path.join(os.getcwd(), 'result_portal.db')  # SQLite database location
 MASTER_ACCESS_CODE = "Adoozisback1@"  # Master PIN with unlimited usage
+
+def add_timestamp_to_pdf(original_pdf_path):
+    # Create a new PDF in memory to overlay the timestamp
+    timestamp_pdf = BytesIO()
+    c = canvas.Canvas(timestamp_pdf, pagesize=letter)
+
+    # Format the timestamp: "Day of week, Day Month Year at Time"
+    timestamp = datetime.now().strftime('%A, %d %B %Y at %I:%M %p')
+
+    # Set the font and size for the timestamp
+    c.setFont("Helvetica", 10)
+
+    # Calculate the width of the timestamp text
+    text_width = c.stringWidth(timestamp, "Helvetica", 10)
+    page_width = letter[0]  # Width of the page in points (letter size: 8.5" x 11")
+
+    # Calculate the x position to ensure the timestamp is aligned to the right
+    x_position = page_width - text_width - 20  # 20 points from the right edge for padding
+
+    # Shift 2 cm (56.69 points) to the left from the current position
+    x_position -= 56.69  # Shift by 2 cm (56.69 points)
+
+    # Position the timestamp in the top-right corner (adjust y-coordinate if necessary)
+    c.drawString(x_position, 770, f"Printed on: {timestamp}")  # Adjust the y-coordinate to your needs
+
+    c.save()
+
+    # Move the timestamp PDF to the beginning of the original PDF
+    timestamp_pdf.seek(0)
+    timestamp_pdf_reader = PdfReader(timestamp_pdf)
+    original_pdf_reader = PdfReader(original_pdf_path)
+    pdf_writer = PdfWriter()
+
+    # Add the timestamp overlay to each page of the original PDF
+    for page_num in range(len(original_pdf_reader.pages)):
+        page = original_pdf_reader.pages[page_num]
+        page.merge_page(timestamp_pdf_reader.pages[0])  # Merge the timestamp overlay with the original page
+        pdf_writer.add_page(page)
+
+    # Save the modified PDF to a temporary file
+    modified_pdf_path = original_pdf_path.replace(".pdf", "_modified.pdf")
+    with open(modified_pdf_path, "wb") as output_pdf:
+        pdf_writer.write(output_pdf)
+
+    return modified_pdf_path
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -79,46 +129,15 @@ def index():
 
         conn.close()
 
-        # Display the PDF inline
-        response = send_from_directory(result_path, result_file, as_attachment=False, mimetype='application/pdf')
-        response.headers['Content-Disposition'] = f'inline; filename={result_file}'
+        # Add timestamp to the PDF
+        modified_pdf_path = add_timestamp_to_pdf(full_path)
+
+        # Display the modified PDF inline
+        response = send_from_directory(result_path, os.path.basename(modified_pdf_path), as_attachment=False, mimetype='application/pdf')
+        response.headers['Content-Disposition'] = f'inline; filename={os.path.basename(modified_pdf_path)}'
         return response
 
     return render_template('index.html', sessions=sessions, terms=terms)
-
-@app.route('/debug/tables')
-def show_tables():
-    try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = cursor.fetchall()
-        conn.close()
-        return {'tables': [t[0] for t in tables]}
-    except Exception as e:
-        return {'error': str(e)}, 500
-
-@app.route('/debug/table/<table_name>')
-def view_table_data(table_name):
-    try:
-        limit = request.args.get('limit', default=100, type=int)
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?;", (table_name,))
-        if not cursor.fetchone():
-            return {'error': f"Table '{table_name}' does not exist"}, 404
-
-        cursor.execute(f"SELECT * FROM {table_name} LIMIT ?", (limit,))
-        rows = cursor.fetchall()
-        data = [dict(row) for row in rows]
-
-        conn.close()
-        return {'table': table_name, 'limit': limit, 'rows': data}
-
-    except Exception as e:
-        return {'error': str(e)}, 500
 
 if __name__ == '__main__':
     app.run(debug=True)
