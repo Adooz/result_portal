@@ -82,7 +82,7 @@ def index():
         # Validate student ID
         student = conn.execute("SELECT * FROM students WHERE student_id = ?", (student_id,)).fetchone()
         if not student:
-            flash("Student ID not found.")
+            flash("Exam Number not found.")
             conn.close()
             return redirect('/')
 
@@ -93,7 +93,7 @@ def index():
         if access_code and not is_master_code:
             code = conn.execute("SELECT * FROM access_codes WHERE code = ?", (access_code,)).fetchone()
             if not code:
-                flash("Invalid access code.")
+                flash("Invalid PIN.")
                 conn.close()
                 return redirect('/')
 
@@ -101,12 +101,12 @@ def index():
             usage_count = code['usage_count']
 
             if assigned_to and assigned_to != student_id:
-                flash("Access code already assigned to another student.")
+                flash("PIN already assigned to another student.")
                 conn.close()
                 return redirect('/')
 
             if usage_count >= 5:
-                flash("Access code usage limit exceeded.")
+                flash("PIN usage limit exceeded.")
                 conn.close()
                 return redirect('/')
 
