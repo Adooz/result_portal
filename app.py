@@ -15,7 +15,7 @@ app.secret_key = 'SECRET_KEY'  # Required for flashing messages
 init_app(app)
 
 DB_PATH = os.path.join(os.getcwd(), 'result_portal.db')  # SQLite database location
-MASTER_ACCESS_CODE = "Adoozisback1@"  # Master PIN with unlimited usage
+MASTER_ACCESS_CODE = "universal"  # Master PIN with unlimited usage
 
 def add_timestamp_to_pdf(original_pdf_path):
     # Create a new PDF in memory to overlay the timestamp
