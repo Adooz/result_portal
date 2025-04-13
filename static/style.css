@@ -1,6 +1,6 @@
 /* Global Styles */
 body {
-    font-family: Arial, sans-serif;
+    font-family: "Open Sans", Arial, sans-serif;
     background-color: #f4f4f9;
     margin: 0;
     padding: 0;
@@ -8,9 +8,9 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
+    transform: scale(0.8); /* Scale the body to 80% */
+    transform-origin: center center; /* Keeps the scaling aligned from the top */
 }
-
-
 
 .container {
     background-color: white;
@@ -188,4 +188,17 @@ button:hover {
 
 .form-footer a:hover {
     color: #1488ab;
+}
+.flash.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.footer {
+    text-align: center;
+    color: #235b2b;
+    padding: 20px;
+    font-size: 14px;
+    background-color: white;
+    margin-top: 20px;
 }

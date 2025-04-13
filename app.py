@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_from_directory, redirect, flash
+from flask import Flask, render_template, request, send_from_directory, redirect, flash, session, url_for
 import os
 import sqlite3
 from config import Config
@@ -56,7 +56,7 @@ def add_timestamp_to_pdf(original_pdf_path):
         pdf_writer.add_page(page)
 
     # Save the modified PDF to a temporary file
-    modified_pdf_path = original_pdf_path.replace(".pdf", "_Result.pdf")
+    modified_pdf_path = original_pdf_path.replace(".pdf", " Result.pdf")
     with open(modified_pdf_path, "wb") as output_pdf:
         pdf_writer.write(output_pdf)
 
@@ -70,9 +70,17 @@ def index():
     if request.method == 'POST':
         access_code = request.form['access_code'].strip()
         student_id = request.form['student_id'].strip()
-        session = request.form['session']
+        session_selected = request.form['session']
         term = request.form['term']
 
+        if session_selected and term == "#":
+            flash("Please select a correct academic session and term.", "error")
+            return redirect('/')
+        
+        if session_selected == "#":
+            flash("Please select a correct Academic Session.", "error")
+            return redirect('/')
+        
         if term == "#":
             flash("Please select a correct term.", "error")
             return redirect('/')
@@ -82,7 +90,7 @@ def index():
         # Validate student ID
         student = conn.execute("SELECT * FROM students WHERE student_id = ?", (student_id,)).fetchone()
         if not student:
-            flash("Exam Number not found.")
+            flash("Exam Number not found.", "error")
             conn.close()
             return redirect('/')
 
@@ -93,7 +101,7 @@ def index():
         if access_code and not is_master_code:
             code = conn.execute("SELECT * FROM access_codes WHERE code = ?", (access_code,)).fetchone()
             if not code:
-                flash("Invalid PIN.")
+                flash("Invalid PIN.", "error")
                 conn.close()
                 return redirect('/')
 
@@ -101,24 +109,24 @@ def index():
             usage_count = code['usage_count']
 
             if assigned_to and assigned_to != student_id:
-                flash("PIN already assigned to another student.")
+                flash("PIN already assigned to another student.", "error")
                 conn.close()
                 return redirect('/')
 
             if usage_count >= 5:
-                flash("PIN usage limit exceeded.")
+                flash("PIN usage limit exceeded.", "error")
                 conn.close()
                 return redirect('/')
 
         # Check if result file exists
         student_class = student['class']
         student_name = student['name']
-        result_path = os.path.join(app.config['RESULTS_FOLDER'], session, term, student_class)
+        result_path = os.path.join(app.config['RESULTS_FOLDER'], session_selected, term, student_class)
         result_file = f"{student_name}.pdf"
         full_path = os.path.join(result_path, result_file)
 
         if not os.path.exists(full_path):
-            flash("Result not found.")
+            flash("Result not found.", "error")
             conn.close()
             return redirect('/')
 
@@ -135,12 +143,14 @@ def index():
 
         # Add timestamp to the PDF
         modified_pdf_path = add_timestamp_to_pdf(full_path)
+        relative_pdf_path = os.path.join(session_selected, term, student_class, os.path.basename(modified_pdf_path))
 
-        # Display the modified PDF inline
-        flash("Result downloaded!.")
-        response = send_from_directory(result_path, os.path.basename(modified_pdf_path), as_attachment=False, mimetype='application/pdf')
-        response.headers['Content-Disposition'] = f'inline; filename={os.path.basename(modified_pdf_path)}'
-        return response
+        # Flash success and redirect after delay
+        #flash("Result found. Redirecting...", "success")
+        return send_from_directory(os.path.dirname(modified_pdf_path),
+                           os.path.basename(modified_pdf_path),
+                           as_attachment=False,
+                           mimetype='application/pdf')
 
     return render_template('index.html', sessions=sessions, terms=terms)
 
